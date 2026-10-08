@@ -8,15 +8,18 @@ public class QuestionTest {
 
     @Test
     void getQuestionReturnsQuestion() {
-        Question question = new Question("Сколько будет 2 + 2?", "4");
+        Question question = new Question("На полотне изображены четыре бурых медвежонка, которые резвятся на поваленном дереве в густом сосновом бору.\" +\n" +
+                "                        \" Сквозь утренний туман пробиваются первые лучи солнца, освещая лесную чащу.\"", "Утро в сосновом лесу");
 
-        assertEquals("Сколько будет 2 + 2?", question.getQuestion());
+        assertEquals("На полотне изображены четыре бурых медвежонка, которые резвятся на поваленном дереве в густом сосновом бору.\" +\n" +
+                "                        \" Сквозь утренний туман пробиваются первые лучи солнца, освещая лесную чащу.\"", question.getQuestion());
     }
 
     @Test
     void getAnswerReturnsAnswer() {
-        Question question = new Question("Сколько будет 2 + 2?", "4");
+        Question question = new Question("На полотне изображены четыре бурых медвежонка, которые резвятся на поваленном дереве в густом сосновом бору.\" +\n" +
+                "                        \" Сквозь утренний туман пробиваются первые лучи солнца, освещая лесную чащу.\"", "Утро в сосновом лесу");
 
-        assertEquals("4", question.getAnswer());
+        assertEquals("Утро в сосновом лесу", question.getAnswer());
     }
 }

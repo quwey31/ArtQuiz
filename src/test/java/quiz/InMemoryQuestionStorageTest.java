@@ -12,8 +12,9 @@ public class InMemoryQuestionStorageTest {
 
         Question question = storage.getQuestion();
 
-        assertEquals("Сколько будет 2 + 2?", question.getQuestion());
-        assertEquals("4", question.getAnswer());
+        assertEquals("На полотне изображены четыре бурых медвежонка, которые резвятся на поваленном дереве в густом сосновом бору." +
+                " Сквозь утренний туман пробиваются первые лучи солнца, освещая лесную чащу.", question.getQuestion());
+        assertEquals("Утро в сосновом лесу", question.getAnswer());
     }
 
     @Test
@@ -25,23 +26,28 @@ public class InMemoryQuestionStorageTest {
         Question thirdQuestion = storage.getQuestion();
         Question fourthQuestion = storage.getQuestion();
 
-        assertEquals("Сколько будет 2 + 2?", firstQuestion.getQuestion());
-        assertEquals("Столица Франции?", secondQuestion.getQuestion());
-        assertEquals("Сколько планет в Солнечной системе?", thirdQuestion.getQuestion());
-        assertEquals("Какой язык программирования мы изучаем?", fourthQuestion.getQuestion());
+        assertEquals("На полотне изображены четыре бурых медвежонка, которые резвятся на поваленном дереве в густом сосновом бору." +
+                " Сквозь утренний туман пробиваются первые лучи солнца, освещая лесную чащу.", firstQuestion.getQuestion());
+        assertEquals("Огромная морская волна нависает над обломком мачты, за который из последних сил держатся несколько потерпевших" +
+                        " кораблекрушение моряков. На горизонте занимается рассвет, дающий людям слабую надежду на спасение.", secondQuestion.getQuestion());
+        assertEquals("Три могучих всадника в доспехах на конях стоят на страже русской земли, внимательно всматриваясь вдаль. За их " +
+                        "спинами — холмистая степь и грозовое небо, а под ногами шумит ковыль.", thirdQuestion.getQuestion());
+        assertEquals("На картине изображена молодая женщина в элегантном тёмном платье и шляпе с пером, сидящая в коляске у ресторана." +
+                        " Её лицо выражает надменность и загадочность, а взгляд устремлён прямо на зрителя.",  fourthQuestion.getQuestion());
     }
 
     @Test
     void afterLastQuestionStorageReturnsFirstQuestion() {
         QuestionStorage storage = new InMemoryQuestionStorage();
+        int totalQuestions = 15;
 
-        storage.getQuestion();
-        storage.getQuestion();
-        storage.getQuestion();
-        storage.getQuestion();
+        for (int i = 0; i < totalQuestions; i++) {
+            storage.getQuestion();
+        }
 
         Question question = storage.getQuestion();
 
-        assertEquals("Сколько будет 2 + 2?", question.getQuestion());
+        assertEquals("На полотне изображены четыре бурых медвежонка, которые резвятся на поваленном дереве в густом сосновом бору." +
+                " Сквозь утренний туман пробиваются первые лучи солнца, освещая лесную чащу.", question.getQuestion());
     }
 }
