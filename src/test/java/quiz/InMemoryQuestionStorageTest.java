@@ -39,7 +39,8 @@ public class InMemoryQuestionStorageTest {
     @Test
     void afterLastQuestionStorageReturnsFirstQuestion() {
         QuestionStorage storage = new InMemoryQuestionStorage();
-        int totalQuestions = 15;
+
+        int totalQuestions = storage.size(); // ← узнаем из хранилища
 
         for (int i = 0; i < totalQuestions; i++) {
             storage.getQuestion();
