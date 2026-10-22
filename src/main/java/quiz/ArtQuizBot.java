@@ -42,6 +42,8 @@ public class ArtQuizBot extends TelegramLongPollingBot {
             responseText = session.startGame();
         } else if (messageText.equals("/help")) {
             responseText = session.getHelp();
+        } else if (messageText.equals("/skip")) {
+            responseText = session.skipQuestion();
         } else if (messageText.equals("/exit")) {
             responseText = session.stopGame();
             sessions.remove(chatId);

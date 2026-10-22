@@ -6,8 +6,8 @@ import org.telegram.telegrambots.updatesreceivers.DefaultBotSession;
 
 public class TelegramApp {
     public void start() {
-        String botUsername = "бот";
-        String botToken = "токен";// почему то не запускается
+        String botUsername = "TheArtQuizBot";
+        String botToken = "8747415749:AAEx03_haQd1BQVDdGJdW6A9pbRTnbfgNeg";//
 
         QuestionStorage storage = new InMemoryQuestionStorage();
 
