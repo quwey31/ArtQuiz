@@ -38,7 +38,16 @@ public class ArtQuizBot extends TelegramLongPollingBot {
 
         String responseText;
 
-        if (messageText.equals("/start")) {
+        if (messageText.equals("/easy")) {
+            storage.loadQuestions("easy");
+            responseText = "Выбран легкий уровень! Напишите /start, чтобы начать.";
+        } else if (messageText.equals("/medium")) {
+            storage.loadQuestions("medium");
+            responseText = "Выбран средний уровень! Напишите /start, чтобы начать.";
+        } else if (messageText.equals("/hard")) {
+            storage.loadQuestions("hard");
+            responseText = "Выбран сложный уровень! Напишите /start, чтобы начать.";
+        }else if (messageText.equals("/start")) {
             responseText = session.startGame();
         } else if (messageText.equals("/help")) {
             responseText = session.getHelp();

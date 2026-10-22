@@ -7,7 +7,7 @@ import org.telegram.telegrambots.updatesreceivers.DefaultBotSession;
 public class TelegramApp {
     public void start() {
         String botUsername = "TheArtQuizBot";
-        String botToken = "8747415749:AAEx03_haQd1BQVDdGJdW6A9pbRTnbfgNeg";//
+        String botToken = System.getenv("TELEGRAM_BOT_TOKEN");
 
         QuestionStorage storage = new InMemoryQuestionStorage();
 

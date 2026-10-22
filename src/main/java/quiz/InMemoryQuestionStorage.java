@@ -1,5 +1,7 @@
 package quiz;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -11,24 +13,38 @@ public class InMemoryQuestionStorage implements QuestionStorage {
 
     public InMemoryQuestionStorage() {
         questions = new ArrayList<>();
-        try {
-            List<String> lines = Files.readAllLines(Paths.get("questions.txt"));
+        loadQuestions("easy"); // по умолчанию грузим легкие
+    }
 
+    @Override
+    public void loadQuestions(String difficulty) {
+        questions.clear();
+        currentQuestion = 0;
+
+        String fileName = switch (difficulty.toLowerCase()) {
+            case "medium" -> "questions_medium.txt";
+            case "hard" -> "questions_hard.txt";
+            default -> "questions_easy.txt";
+        };
+
+        try {
+            List<String> lines = Files.readAllLines(Paths.get(fileName));
             for (String line : lines) {
                 if (line.contains("|")) {
                     String[] parts = line.split("\\s*\\|\\s*", 2);
-                    String questionText = parts[0].trim();
-                    String answer = parts[1].trim();
-                    questions.add(new Question(questionText, answer));
+                    questions.add(new Question(parts[0].trim(), parts[1].trim()));
                 }
             }
         } catch (Exception e) {
-            System.out.println("Ошибка при чтении questions.txt: " + e.getMessage());
+            System.out.println("Ошибка при чтении " + fileName + ": " + e.getMessage());
         }
     }
 
     @Override
     public Question getQuestion() {
+        if (questions.isEmpty()) {
+            return new Question("Вопросы не загружены", "Нет ответа");
+        }
         Question question = questions.get(currentQuestion);
         currentQuestion++;
         if (currentQuestion >= questions.size()) {
@@ -40,5 +56,15 @@ public class InMemoryQuestionStorage implements QuestionStorage {
     @Override
     public int size() {
         return questions.size();
+    }
+
+    @Override
+    public List<Question> getAllQuestions() {
+        return questions;
+    }
+
+    public String getQuestionsAsJson() {
+        Gson gson = new GsonBuilder().setPrettyPrinting().create();
+        return gson.toJson(questions);
     }
 }
