@@ -2,6 +2,8 @@ package quiz;
 
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
+import org.telegram.telegrambots.meta.api.methods.send.SendPhoto;
+import org.telegram.telegrambots.meta.api.objects.InputFile;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
@@ -12,7 +14,7 @@ public class ArtQuizBot extends TelegramLongPollingBot {
 
     private final String botUsername;
     private final QuestionStorage storage;
-    private final Map<Long, TelegramSession> sessions = new HashMap<>();
+    private final Map<Long, QuizSession> sessions = new HashMap<>();
 
     public ArtQuizBot(String botUsername, String botToken, QuestionStorage storage) {
         super(botToken);
@@ -27,27 +29,28 @@ public class ArtQuizBot extends TelegramLongPollingBot {
 
     @Override
     public void onUpdateReceived(Update update) {
-        if (!update.hasMessage() || !update.getMessage().hasText()) {
-            return;
-        }
+        if (!update.hasMessage() || !update.getMessage().hasText()) return;
 
         long chatId = update.getMessage().getChatId();
         String messageText = update.getMessage().getText();
 
-        TelegramSession session = sessions.computeIfAbsent(chatId, id -> new TelegramSession(storage));
+        QuizSession session = sessions.computeIfAbsent(chatId, id -> new QuizSession(storage));
+
+        if (messageText.equals("/art")) {
+            ArtworkApi api = new ArtworkApi();
+
+
+            ArtworkApi.Artwork artwork = api.getRandomArtwork();
+            if (artwork != null) {
+                 sendPhoto(chatId, artwork.primaryImageSmall, artwork.title + "\nАвтор: " + artwork.artistDisplayName);
+            } else {
+                sendMessage(chatId, "Не удалось загрузить картину.");
+            }
+            return;
+        }
 
         String responseText;
-
-        if (messageText.equals("/easy")) {
-            storage.loadQuestions("easy");
-            responseText = "Выбран легкий уровень! Напишите /start, чтобы начать.";
-        } else if (messageText.equals("/medium")) {
-            storage.loadQuestions("medium");
-            responseText = "Выбран средний уровень! Напишите /start, чтобы начать.";
-        } else if (messageText.equals("/hard")) {
-            storage.loadQuestions("hard");
-            responseText = "Выбран сложный уровень! Напишите /start, чтобы начать.";
-        }else if (messageText.equals("/start")) {
+        if (messageText.equals("/start")) {
             responseText = session.startGame();
         } else if (messageText.equals("/help")) {
             responseText = session.getHelp();
@@ -56,6 +59,12 @@ public class ArtQuizBot extends TelegramLongPollingBot {
         } else if (messageText.equals("/exit")) {
             responseText = session.stopGame();
             sessions.remove(chatId);
+        } else if (messageText.equals("/easy")) {
+            responseText = session.changeLevel("easy");
+        } else if (messageText.equals("/medium")) {
+            responseText = session.changeLevel("medium");
+        } else if (messageText.equals("/hard")) {
+            responseText = session.changeLevel("hard");
         } else {
             responseText = session.handleAnswer(messageText);
         }
@@ -69,6 +78,18 @@ public class ArtQuizBot extends TelegramLongPollingBot {
         message.setText(text);
         try {
             execute(message);
+        } catch (TelegramApiException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void sendPhoto(long chatId, String photoUrl, String caption) {
+        SendPhoto photo = new SendPhoto();
+        photo.setChatId(String.valueOf(chatId));
+        photo.setPhoto(new InputFile(photoUrl));
+        photo.setCaption(caption);
+        try {
+            execute(photo);
         } catch (TelegramApiException e) {
             e.printStackTrace();
         }
