@@ -39,8 +39,7 @@ public class ArtQuizBot extends TelegramLongPollingBot {
         if (messageText.equals("/art")) {
             ArtworkApi api = new ArtworkApi();
 
-
-            ArtworkApi.Artwork artwork = api.getRandomArtwork();
+            Artwork artwork = api.getRandomArtwork();
             if (artwork != null) {
                  sendPhoto(chatId, artwork.primaryImageSmall, artwork.title + "\nАвтор: " + artwork.artistDisplayName);
             } else {

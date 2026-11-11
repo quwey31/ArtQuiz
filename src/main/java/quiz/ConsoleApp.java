@@ -15,7 +15,7 @@ public class ConsoleApp {
 
             if (input.equals("/art")) {
                 ArtworkApi api = new ArtworkApi();
-                ArtworkApi.Artwork artwork = api.getRandomArtwork();
+                Artwork artwork = api.getRandomArtwork();
                 if (artwork != null) {
                     System.out.println(artwork.title + "\nАвтор: " + artwork.artistDisplayName);
                     System.out.println("Ссылка на картинку: " + artwork.primaryImageSmall);

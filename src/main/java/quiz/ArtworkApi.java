@@ -14,12 +14,6 @@ public class ArtworkApi {
     private final Gson gson = new Gson();
     private final Random random = new Random();
 
-    public static class Artwork {
-        public String title;
-        public String artistDisplayName;
-        public String primaryImageSmall;
-    }
-
     private static class SearchResponse {
         public int[] objectIDs;
     }
