@@ -4,7 +4,9 @@ import com.google.gson.Gson;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
+import java.net.SocketTimeoutException;
 import java.net.URL;
+import java.net.UnknownHostException;
 import java.util.Random;
 
 public class ArtworkApi {
@@ -25,7 +27,7 @@ public class ArtworkApi {
             SearchResponse searchResult = gson.fromJson(searchJson, SearchResponse.class);
 
             if (searchResult == null || searchResult.objectIDs == null || searchResult.objectIDs.length == 0) {
-                System.out.println("API не вернул ни одной картины.");
+                System.out.println("API вернул пустой список картин.");
                 return null;
             }
 
@@ -41,13 +43,20 @@ public class ArtworkApi {
             }
             return artwork;
 
+        } catch (UnknownHostException e) {
+            System.out.println("=== ОШИБКА API: Нет подключения к интернету или сайт заблокирован (UnknownHostException) ===");
+            return null;
+        } catch (SocketTimeoutException e) {
+            System.out.println("=== ОШИБКА API: Сервер не отвечает, превышено время ожидания (SocketTimeoutException) ===");
+            return null;
         } catch (Exception e) {
-            System.out.println("=== ОШИБКА API ===");
+            System.out.println("=== ОШИБКА API: Другая ошибка ===");
             e.printStackTrace();
             return null;
         }
     }
 
+    // метод для тестов
     public Artwork parseArtworkJson(String json) {
         return gson.fromJson(json, Artwork.class);
     }
@@ -57,6 +66,8 @@ public class ArtworkApi {
         HttpURLConnection connection = (HttpURLConnection) url.openConnection();
         connection.setRequestMethod("GET");
         connection.setRequestProperty("Accept", "application/json");
+        connection.setConnectTimeout(5000); // ждем соединения 5 сек
+        connection.setReadTimeout(5000);    // ждем ответа 5 сек
 
         if (connection.getResponseCode() != 200) {
             throw new RuntimeException("HTTP ошибка: " + connection.getResponseCode());

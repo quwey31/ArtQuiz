@@ -8,6 +8,7 @@ import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class ArtQuizBot extends TelegramLongPollingBot {
@@ -34,38 +35,38 @@ public class ArtQuizBot extends TelegramLongPollingBot {
         long chatId = update.getMessage().getChatId();
         String messageText = update.getMessage().getText();
 
-        QuizSession session = sessions.computeIfAbsent(chatId, id -> new QuizSession(storage));
+        // создаем сессию (по умолчанию легкий уровень)
+        QuizSession session = sessions.computeIfAbsent(chatId, id -> {
+            storage.loadQuestions("easy");
+            return new QuizSession(storage.getAllQuestions());
+        });
 
+        String responseText;
+
+        // обработка картин
         if (messageText.equals("/art")) {
             ArtworkApi api = new ArtworkApi();
-
             Artwork artwork = api.getRandomArtwork();
             if (artwork != null) {
-                 sendPhoto(chatId, artwork.primaryImageSmall, artwork.title + "\nАвтор: " + artwork.artistDisplayName);
+                sendPhoto(chatId, artwork.primaryImageSmall, "🎨 " + artwork.title + "\nАвтор: " + artwork.artistDisplayName);
             } else {
                 sendMessage(chatId, "Не удалось загрузить картину.");
             }
             return;
         }
 
-        String responseText;
-        if (messageText.equals("/start")) {
-            responseText = session.startGame();
-        } else if (messageText.equals("/help")) {
-            responseText = session.getHelp();
-        } else if (messageText.equals("/skip")) {
-            responseText = session.skipQuestion();
-        } else if (messageText.equals("/exit")) {
-            responseText = session.stopGame();
-            sessions.remove(chatId);
-        } else if (messageText.equals("/easy")) {
-            responseText = session.changeLevel("easy");
-        } else if (messageText.equals("/medium")) {
-            responseText = session.changeLevel("medium");
-        } else if (messageText.equals("/hard")) {
-            responseText = session.changeLevel("hard");
+        // Обработка уровней
+        if (messageText.equals("/easy") || messageText.equals("/medium") || messageText.equals("/hard")) {
+            String level = messageText.substring(1);
+            storage.loadQuestions(level);
+            List<Question> newQuestions = storage.getAllQuestions();
+            responseText = session.changeLevel(newQuestions);
         } else {
-            responseText = session.handleAnswer(messageText);
+            responseText = session.handleMessage(messageText);
+        }
+
+        if (messageText.equals("/exit")) {
+            sessions.remove(chatId);
         }
 
         sendMessage(chatId, responseText);

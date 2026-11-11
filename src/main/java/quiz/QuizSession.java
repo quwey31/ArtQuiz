@@ -1,18 +1,32 @@
 package quiz;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class QuizSession {
-    private final QuestionStorage storage;
+    private List<Question> pendingQuestions;   // вопросы, которые еще не задавали
+    private final List<Question> answeredQuestions; // вопросы, на которые уже ответили
     private Question currentQuestion;
     private boolean isPlaying = false;
 
-    public QuizSession(QuestionStorage storage) {
-        this.storage = storage;
+    public QuizSession(List<Question> questions) {
+        this.pendingQuestions = new ArrayList<>(questions);
+        this.answeredQuestions = new ArrayList<>();
     }
 
     public String startGame() {
         isPlaying = true;
-        currentQuestion = storage.getQuestion();
-        return getHelp();
+        pendingQuestions.addAll(answeredQuestions);
+        answeredQuestions.clear();
+
+        if (pendingQuestions.isEmpty()) {
+            return "Нет доступных вопросов для игры.";
+        }
+
+        currentQuestion = pendingQuestions.remove(0);
+        return "Привет! Я ArtQuizBot.\n" +
+                "Мои команды: /help, /skip, /easy, /medium, /hard, /exit, /art.\n" +
+                "Вопрос:\n" + currentQuestion.getQuestion();
     }
 
     public String stopGame() {
@@ -21,27 +35,27 @@ public class QuizSession {
     }
 
     public String getHelp() {
-        String text = "Привет! Я ArtQuizBot.\n" +
-                "Я задаю вопросы и проверяю твои ответы.\n" +
-                "Я умею:\n" +
-                "/help - справка\n" +
+        return "Справка:\n" +
+                "/help - эта справка\n" +
                 "/skip - пропустить вопрос\n" +
-                "/easy, /medium, /hard - выбрать уровень\n" +
-                "/art - показать картину\n" +
-                "/exit - выйти\n\n";
-        if (isPlaying && currentQuestion != null) {
-            text += "Текущий вопрос:\n" + currentQuestion.getQuestion();
-        } else {
-            text += "Игра не запущена. Напишите /start.";
-        }
-        return text;
+                "/art - случайная картина из Метрополитен-музея Нью-Йорка\n" +
+                "/easy, /medium, /hard - уровни сложности\n" +
+                "/exit - выход\n\n" +
+                "Текущий вопрос:\n" + (currentQuestion != null ? currentQuestion.getQuestion() : "Игра не запущена");
     }
 
     public String skipQuestion() {
         if (!isPlaying || currentQuestion == null) {
             return "Игра не запущена. Напишите /start.";
         }
-        currentQuestion = storage.getQuestion();
+
+        pendingQuestions.add(currentQuestion); // возвращаем в конец
+
+        if (pendingQuestions.isEmpty()) {
+            return "Вопросы закончились! Вы молодец!";
+        }
+
+        currentQuestion = pendingQuestions.remove(0);
         return "Вопрос пропущен.\n\nСледующий вопрос:\n" + currentQuestion.getQuestion();
     }
 
@@ -51,24 +65,42 @@ public class QuizSession {
         }
 
         if (userAnswer.equalsIgnoreCase(currentQuestion.getAnswer())) {
-            currentQuestion = storage.getQuestion();
+            answeredQuestions.add(currentQuestion);
+
+            if (pendingQuestions.isEmpty()) {
+                isPlaying = false;
+                return "Молодец! Вы ответили на все вопросы!";
+            }
+
+            currentQuestion = pendingQuestions.remove(0);
             return "Молодец!\n\nСледующий вопрос:\n" + currentQuestion.getQuestion();
         } else {
             return "Неправильно! Попробуй ещё раз.\n" + currentQuestion.getQuestion();
         }
     }
 
-    public String changeLevel(String level) {
-        storage.loadQuestions(level);
-        if (isPlaying) {
-            currentQuestion = storage.getQuestion();
-            return "Уровень изменен на " + level + ".\n\nПервый вопрос:\n" + currentQuestion.getQuestion();
-        } else {
-            return "Уровень изменен на " + level + ". Напишите /start, чтобы начать.";
-        }
+    // смена уровня слодности
+    public String changeLevel(List<Question> newQuestions) {
+        this.pendingQuestions = new ArrayList<>(newQuestions);
+        this.answeredQuestions.clear();
+        this.isPlaying = false;
+        this.currentQuestion = null;
+        return "Уровень изменен! Напишите /start, чтобы начать.";
+    }
+
+    public String handleMessage(String message) {
+        if (message.equals("/start")) return startGame();
+        if (message.equals("/help")) return getHelp();
+        if (message.equals("/skip")) return skipQuestion();
+        if (message.equals("/exit")) return stopGame();
+        return handleAnswer(message);
     }
 
     public Question getCurrentQuestion() {
         return currentQuestion;
+    }
+
+    public boolean isPlaying() {
+        return isPlaying;
     }
 }
