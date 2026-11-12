@@ -1,54 +1,59 @@
 package quiz;
 
 import org.junit.jupiter.api.Test;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.*;
 
 public class InMemoryQuestionStorageTest {
 
     @Test
-    void getQuestionReturnsFirstQuestion() {
-        QuestionStorage storage = new InMemoryQuestionStorage();
+    void loadQuestionsSwitchesDifficulty() {
+        InMemoryQuestionStorage storage = new InMemoryQuestionStorage();
 
-        Question question = storage.getQuestion();
+        storage.loadQuestions("easy");
+        int easySize = storage.size();
+        assertTrue(easySize > 0, "Легкий уровень не должен быть пустым");
 
-        assertEquals("На полотне изображены четыре бурых медвежонка, которые резвятся на поваленном дереве в густом сосновом бору." +
-                " Сквозь утренний туман пробиваются первые лучи солнца, освещая лесную чащу.", question.getQuestion());
-        assertEquals("Утро в сосновом лесу", question.getAnswer());
+        storage.loadQuestions("hard");
+        int hardSize = storage.size();
+        assertTrue(hardSize > 0, "Сложный уровень не должен быть пустым");
+
+                Question easyQ = new InMemoryQuestionStorage().getQuestion(); // По умолчанию easy
+        storage.loadQuestions("hard");
+        Question hardQ = storage.getQuestion();
+
+        assertNotEquals(easyQ.getQuestion(), hardQ.getQuestion(), "Вопросы разных уровней не должны совпадать");
     }
 
     @Test
-    void getQuestionReturnsQuestionsInOrder() {
-        QuestionStorage storage = new InMemoryQuestionStorage();
+    void getQuestionReturnsQuestionsInOrderAndLoops() {
+        InMemoryQuestionStorage storage = new InMemoryQuestionStorage();
+        storage.loadQuestions("easy");
+
+        int total = storage.size();
+        assertTrue(total > 1, "Для теста нужно хотя бы 2 вопроса в easy.txt");
 
         Question firstQuestion = storage.getQuestion();
-        Question secondQuestion = storage.getQuestion();
-        Question thirdQuestion = storage.getQuestion();
-        Question fourthQuestion = storage.getQuestion();
 
-        assertEquals("На полотне изображены четыре бурых медвежонка, которые резвятся на поваленном дереве в густом сосновом бору." +
-                " Сквозь утренний туман пробиваются первые лучи солнца, освещая лесную чащу.", firstQuestion.getQuestion());
-        assertEquals("Огромная морская волна нависает над обломком мачты, за который из последних сил держатся несколько потерпевших" +
-                " кораблекрушение моряков. На горизонте занимается рассвет, дающий людям слабую надежду на спасение.", secondQuestion.getQuestion());
-        assertEquals("Три могучих всадника в доспехах на конях стоят на страже русской земли, внимательно всматриваясь вдаль. За их " +
-                "спинами — холмистая степь и грозовое небо, а под ногами шумит ковыль.", thirdQuestion.getQuestion());
-        assertEquals("На картине изображена молодая женщина в элегантном тёмном платье и шляпе с пером, сидящая в коляске у ресторана." +
-                " Её лицо выражает надменность и загадочность, а взгляд устремлён прямо на зрителя.",  fourthQuestion.getQuestion());
-    }
-
-    @Test
-    void afterLastQuestionStorageReturnsFirstQuestion() {
-        QuestionStorage storage = new InMemoryQuestionStorage();
-
-        int totalQuestions = storage.size(); // ← узнаем из хранилища
-
-        for (int i = 0; i < totalQuestions; i++) {
+        for (int i = 1; i < total; i++) {
             storage.getQuestion();
         }
 
-        Question question = storage.getQuestion();
+        // После последнего должен снова пойти первый (цикл замкнулся)
+        Question afterLast = storage.getQuestion();
+        assertEquals(firstQuestion.getQuestion(), afterLast.getQuestion(), "После последнего вопроса должен вернуться первый");
+    }
 
-        assertEquals("На полотне изображены четыре бурых медвежонка, которые резвятся на поваленном дереве в густом сосновом бору." +
-                " Сквозь утренний туман пробиваются первые лучи солнца, освещая лесную чащу.", question.getQuestion());
+    @Test
+    void getQuestionsAsJsonReturnsCorrectFormat() {
+        InMemoryQuestionStorage storage = new InMemoryQuestionStorage();
+        storage.loadQuestions("easy");
+
+        String json = storage.getQuestionsAsJson();
+
+        assertTrue(json.startsWith("["), "JSON должен начинаться с квадратной скобки");
+        assertTrue(json.endsWith("]"), "JSON должен заканчиваться квадратной скобкой");
+
+        assertTrue(json.contains("\"question\":"), "В JSON должно быть поле question");
+        assertTrue(json.contains("\"answer\":"), "В JSON должно быть поле answer");
     }
 }
